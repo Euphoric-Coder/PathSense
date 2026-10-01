@@ -1,0 +1,31 @@
+id,start_node_id,end_node_id,distance_m,surface,surface_condition,clear_width_m,gradient_pct,stairs,ramp_available,obstruction,lighting,wheelchair_score,crutches_score,elderly_score,stroller_score,general_score,data_status,last_verified_at,notes
+GH-S001,GH-L01,GH-L02,144,asphalt,good,2.4,1.5,False,,none,good,94,92,92,94,97,synthetic_mock,,Wide mock connector.
+GH-S002,GH-L02,GH-L09,120,concrete,good,1.8,2.0,False,True,none,moderate,90,90,88,91,95,synthetic_mock,,Mock step-free north link.
+GH-S003,GH-L09,GH-L10,134,paver,moderate,1.5,3.0,False,,temporary_material,moderate,70,74,72,76,86,synthetic_mock,,Mock temporary material reduces usable width.
+GH-S004,GH-L10,GH-L03,115,concrete,good,1.7,1.0,False,True,none,good,92,91,90,93,96,synthetic_mock,,Mock smooth connector.
+GH-S005,GH-L03,GH-L01,151,asphalt,moderate,1.5,2.5,False,,parked_two_wheeler,good,72,78,76,74,88,synthetic_mock,,Mock intermittent obstruction.
+GH-S006,GH-L03,GH-L04,140,concrete,good,1.6,2.0,False,True,none,good,91,90,89,92,96,synthetic_mock,,Mock park approach.
+GH-S007,GH-L04,GH-L11,108,paver,poor,1.2,3.5,False,,surface_damage,moderate,48,60,55,52,72,synthetic_mock,,Mock uneven pavers.
+GH-S008,GH-L11,GH-L05,120,asphalt,moderate,1.4,1.0,False,,vendor_encroachment,good,61,70,68,65,82,synthetic_mock,,Mock market-side narrowing.
+GH-S009,GH-L05,GH-L06,150,concrete,good,1.8,1.5,False,True,none,good,90,91,89,92,96,synthetic_mock,,Mock accessible south connector.
+GH-S010,GH-L06,GH-L12,100,asphalt,moderate,1.4,2.0,False,,parked_vehicle,moderate,66,72,70,67,84,synthetic_mock,,Mock intermittent parked vehicle.
+GH-S011,GH-L12,GH-L07,64,asphalt,good,1.9,1.0,False,,none,good,93,92,91,94,97,synthetic_mock,,Mock bus approach.
+GH-S012,GH-L07,GH-L01,170,asphalt,good,2.2,1.5,False,True,none,good,95,93,92,95,98,synthetic_mock,,Mock main-road access segment.
+GH-S013,GH-L01,GH-L08,144,concrete,moderate,1.3,4.5,False,,drain_cover_gap,moderate,58,67,62,60,79,synthetic_mock,,Mock drain-cover discontinuity.
+GH-S014,GH-L08,GH-L02,145,concrete,good,1.6,2.0,False,True,none,good,89,89,87,91,95,synthetic_mock,,Mock clinic-to-north link.
+GH-S015,GH-L08,GH-L07,130,asphalt,poor,1.1,2.0,False,,surface_damage,poor,45,58,54,50,71,synthetic_mock,,Mock rough narrow segment.
+GH-S016,GH-L02,GH-L03,182,concrete,moderate,1.2,1.5,True,False,none,good,8,45,40,18,78,synthetic_mock,,Mock shortcut containing steps.
+GH-S017,GH-L04,GH-L05,125,paver,good,1.7,2.0,False,True,none,good,91,90,89,93,96,synthetic_mock,,Mock accessible park-market link.
+GH-S018,GH-L05,GH-L01,191,asphalt,moderate,1.6,2.0,False,,pedestrian_congestion,good,73,78,76,74,86,synthetic_mock,,Mock busy connector.
+GH-S019,GH-L05,GH-L12,233,concrete,moderate,1.3,5.5,False,,none,moderate,54,64,58,57,80,synthetic_mock,,Mock steeper connector.
+GH-S020,GH-L06,GH-L07,161,asphalt,good,1.8,1.5,False,,none,good,92,91,90,93,97,synthetic_mock,,Mock accessible alternate south route.
+GH-S021,GH-L06,GH-L11,266,concrete,poor,1.0,2.0,False,,construction,poor,28,45,41,35,62,synthetic_mock,,Mock construction restriction.
+GH-S022,GH-L03,GH-L10,115,concrete,good,1.5,2.5,False,True,none,moderate,88,87,86,90,94,synthetic_mock,,Mock north-east alternative.
+GH-S023,GH-L10,GH-L04,200,paver,moderate,1.4,4.0,False,,none,moderate,66,72,69,69,84,synthetic_mock,,Mock moderate gradient.
+GH-S024,GH-L09,GH-L03,118,asphalt,good,1.8,2.0,False,,none,good,92,91,90,92,96,synthetic_mock,,Mock direct north link.
+GH-S025,GH-L08,GH-L12,184,concrete,moderate,1.5,1.5,False,,temporary_vendor,good,70,76,74,72,86,synthetic_mock,,Mock temporary vendor obstruction.
+GH-S026,GH-L12,GH-L06,100,asphalt,good,1.7,1.0,False,,none,good,91,91,90,92,96,synthetic_mock,,Mock west-south connector.
+GH-S027,GH-L11,GH-L04,108,concrete,good,1.6,2.0,False,True,none,good,90,90,88,91,95,synthetic_mock,,Mock alternative east connector.
+GH-S028,GH-L07,GH-L12,64,asphalt,moderate,1.4,1.0,False,,parked_two_wheeler,moderate,70,77,74,72,85,synthetic_mock,,Mock local-lane route.
+GH-S029,GH-L01,GH-L05,191,concrete,good,1.8,1.5,False,True,none,good,93,92,91,94,97,synthetic_mock,,Mock accessible central-south link.
+GH-S030,GH-L04,GH-L10,200,concrete,moderate,1.25,6.0,False,,none,good,49,62,56,54,79,synthetic_mock,,Mock high-gradient shortcut.

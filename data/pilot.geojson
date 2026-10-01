@@ -1,0 +1,1260 @@
+{
+  "type": "FeatureCollection",
+  "name": "pathsense_gholeshapur_mock",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L01",
+        "name": "Diamond Harbour Road Access Point",
+        "type": "junction",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.319,
+          22.5033
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L02",
+        "name": "North Residential Junction",
+        "type": "junction",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.31835,
+          22.50445
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L03",
+        "name": "Neighbourhood Pharmacy",
+        "type": "pharmacy",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.3201,
+          22.5042
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L04",
+        "name": "Community Park Entrance",
+        "type": "park",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.3211,
+          22.50335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L05",
+        "name": "Local Market Corner",
+        "type": "market",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.32055,
+          22.50235
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L06",
+        "name": "South Residential Junction",
+        "type": "junction",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.3193,
+          22.50165
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L07",
+        "name": "Bus Stop Access Point",
+        "type": "transit",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.31785,
+          22.5022
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L08",
+        "name": "Clinic Access Point",
+        "type": "clinic",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.3176,
+          22.50335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L09",
+        "name": "Community Hall Entrance",
+        "type": "community",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.31935,
+          22.505
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L10",
+        "name": "School Lane Junction",
+        "type": "school",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.32065,
+          22.5051
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L11",
+        "name": "East Lane Junction",
+        "type": "junction",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.3217,
+          22.50255
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "landmark",
+        "id": "GH-L12",
+        "name": "West Lane Junction",
+        "type": "junction",
+        "is_mock": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.31835,
+          22.50185
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S001",
+        "start_node_id": "GH-L01",
+        "end_node_id": "GH-L02",
+        "distance_m": 144,
+        "surface": "asphalt",
+        "surface_condition": "good",
+        "clear_width_m": 2.4,
+        "gradient_pct": 1.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 94, \"crutches\": 92, \"elderly\": 92, \"stroller\": 94, \"general\": 97}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Wide mock connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.319,
+            22.5033
+          ],
+          [
+            88.31835,
+            22.50445
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S002",
+        "start_node_id": "GH-L02",
+        "end_node_id": "GH-L09",
+        "distance_m": 120,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.8,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 90, \"crutches\": 90, \"elderly\": 88, \"stroller\": 91, \"general\": 95}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock step-free north link."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31835,
+            22.50445
+          ],
+          [
+            88.31935,
+            22.505
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S003",
+        "start_node_id": "GH-L09",
+        "end_node_id": "GH-L10",
+        "distance_m": 134,
+        "surface": "paver",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.5,
+        "gradient_pct": 3.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "temporary_material",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 70, \"crutches\": 74, \"elderly\": 72, \"stroller\": 76, \"general\": 86}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock temporary material reduces usable width."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31935,
+            22.505
+          ],
+          [
+            88.32065,
+            22.5051
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S004",
+        "start_node_id": "GH-L10",
+        "end_node_id": "GH-L03",
+        "distance_m": 115,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.7,
+        "gradient_pct": 1.0,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 92, \"crutches\": 91, \"elderly\": 90, \"stroller\": 93, \"general\": 96}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock smooth connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.32065,
+            22.5051
+          ],
+          [
+            88.3201,
+            22.5042
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S005",
+        "start_node_id": "GH-L03",
+        "end_node_id": "GH-L01",
+        "distance_m": 151,
+        "surface": "asphalt",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.5,
+        "gradient_pct": 2.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "parked_two_wheeler",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 72, \"crutches\": 78, \"elderly\": 76, \"stroller\": 74, \"general\": 88}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock intermittent obstruction."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3201,
+            22.5042
+          ],
+          [
+            88.319,
+            22.5033
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S006",
+        "start_node_id": "GH-L03",
+        "end_node_id": "GH-L04",
+        "distance_m": 140,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.6,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 91, \"crutches\": 90, \"elderly\": 89, \"stroller\": 92, \"general\": 96}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock park approach."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3201,
+            22.5042
+          ],
+          [
+            88.3211,
+            22.50335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S007",
+        "start_node_id": "GH-L04",
+        "end_node_id": "GH-L11",
+        "distance_m": 108,
+        "surface": "paver",
+        "surface_condition": "poor",
+        "clear_width_m": 1.2,
+        "gradient_pct": 3.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "surface_damage",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 48, \"crutches\": 60, \"elderly\": 55, \"stroller\": 52, \"general\": 72}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock uneven pavers."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3211,
+            22.50335
+          ],
+          [
+            88.3217,
+            22.50255
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S008",
+        "start_node_id": "GH-L11",
+        "end_node_id": "GH-L05",
+        "distance_m": 120,
+        "surface": "asphalt",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.4,
+        "gradient_pct": 1.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "vendor_encroachment",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 61, \"crutches\": 70, \"elderly\": 68, \"stroller\": 65, \"general\": 82}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock market-side narrowing."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3217,
+            22.50255
+          ],
+          [
+            88.32055,
+            22.50235
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S009",
+        "start_node_id": "GH-L05",
+        "end_node_id": "GH-L06",
+        "distance_m": 150,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.8,
+        "gradient_pct": 1.5,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 90, \"crutches\": 91, \"elderly\": 89, \"stroller\": 92, \"general\": 96}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock accessible south connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.32055,
+            22.50235
+          ],
+          [
+            88.3193,
+            22.50165
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S010",
+        "start_node_id": "GH-L06",
+        "end_node_id": "GH-L12",
+        "distance_m": 100,
+        "surface": "asphalt",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.4,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "parked_vehicle",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 66, \"crutches\": 72, \"elderly\": 70, \"stroller\": 67, \"general\": 84}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock intermittent parked vehicle."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3193,
+            22.50165
+          ],
+          [
+            88.31835,
+            22.50185
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S011",
+        "start_node_id": "GH-L12",
+        "end_node_id": "GH-L07",
+        "distance_m": 64,
+        "surface": "asphalt",
+        "surface_condition": "good",
+        "clear_width_m": 1.9,
+        "gradient_pct": 1.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 93, \"crutches\": 92, \"elderly\": 91, \"stroller\": 94, \"general\": 97}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock bus approach."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31835,
+            22.50185
+          ],
+          [
+            88.31785,
+            22.5022
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S012",
+        "start_node_id": "GH-L07",
+        "end_node_id": "GH-L01",
+        "distance_m": 170,
+        "surface": "asphalt",
+        "surface_condition": "good",
+        "clear_width_m": 2.2,
+        "gradient_pct": 1.5,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 95, \"crutches\": 93, \"elderly\": 92, \"stroller\": 95, \"general\": 98}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock main-road access segment."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31785,
+            22.5022
+          ],
+          [
+            88.319,
+            22.5033
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S013",
+        "start_node_id": "GH-L01",
+        "end_node_id": "GH-L08",
+        "distance_m": 144,
+        "surface": "concrete",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.3,
+        "gradient_pct": 4.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "drain_cover_gap",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 58, \"crutches\": 67, \"elderly\": 62, \"stroller\": 60, \"general\": 79}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock drain-cover discontinuity."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.319,
+            22.5033
+          ],
+          [
+            88.3176,
+            22.50335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S014",
+        "start_node_id": "GH-L08",
+        "end_node_id": "GH-L02",
+        "distance_m": 145,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.6,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 89, \"crutches\": 89, \"elderly\": 87, \"stroller\": 91, \"general\": 95}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock clinic-to-north link."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3176,
+            22.50335
+          ],
+          [
+            88.31835,
+            22.50445
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S015",
+        "start_node_id": "GH-L08",
+        "end_node_id": "GH-L07",
+        "distance_m": 130,
+        "surface": "asphalt",
+        "surface_condition": "poor",
+        "clear_width_m": 1.1,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "surface_damage",
+        "lighting": "poor",
+        "scores": "{\"wheelchair\": 45, \"crutches\": 58, \"elderly\": 54, \"stroller\": 50, \"general\": 71}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock rough narrow segment."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3176,
+            22.50335
+          ],
+          [
+            88.31785,
+            22.5022
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S016",
+        "start_node_id": "GH-L02",
+        "end_node_id": "GH-L03",
+        "distance_m": 182,
+        "surface": "concrete",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.2,
+        "gradient_pct": 1.5,
+        "stairs": true,
+        "ramp_available": false,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 8, \"crutches\": 45, \"elderly\": 40, \"stroller\": 18, \"general\": 78}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock shortcut containing steps."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31835,
+            22.50445
+          ],
+          [
+            88.3201,
+            22.5042
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S017",
+        "start_node_id": "GH-L04",
+        "end_node_id": "GH-L05",
+        "distance_m": 125,
+        "surface": "paver",
+        "surface_condition": "good",
+        "clear_width_m": 1.7,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 91, \"crutches\": 90, \"elderly\": 89, \"stroller\": 93, \"general\": 96}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock accessible park-market link."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3211,
+            22.50335
+          ],
+          [
+            88.32055,
+            22.50235
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S018",
+        "start_node_id": "GH-L05",
+        "end_node_id": "GH-L01",
+        "distance_m": 191,
+        "surface": "asphalt",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.6,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "pedestrian_congestion",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 73, \"crutches\": 78, \"elderly\": 76, \"stroller\": 74, \"general\": 86}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock busy connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.32055,
+            22.50235
+          ],
+          [
+            88.319,
+            22.5033
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S019",
+        "start_node_id": "GH-L05",
+        "end_node_id": "GH-L12",
+        "distance_m": 233,
+        "surface": "concrete",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.3,
+        "gradient_pct": 5.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 54, \"crutches\": 64, \"elderly\": 58, \"stroller\": 57, \"general\": 80}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock steeper connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.32055,
+            22.50235
+          ],
+          [
+            88.31835,
+            22.50185
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S020",
+        "start_node_id": "GH-L06",
+        "end_node_id": "GH-L07",
+        "distance_m": 161,
+        "surface": "asphalt",
+        "surface_condition": "good",
+        "clear_width_m": 1.8,
+        "gradient_pct": 1.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 92, \"crutches\": 91, \"elderly\": 90, \"stroller\": 93, \"general\": 97}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock accessible alternate south route."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3193,
+            22.50165
+          ],
+          [
+            88.31785,
+            22.5022
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S021",
+        "start_node_id": "GH-L06",
+        "end_node_id": "GH-L11",
+        "distance_m": 266,
+        "surface": "concrete",
+        "surface_condition": "poor",
+        "clear_width_m": 1.0,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "construction",
+        "lighting": "poor",
+        "scores": "{\"wheelchair\": 28, \"crutches\": 45, \"elderly\": 41, \"stroller\": 35, \"general\": 62}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock construction restriction."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3193,
+            22.50165
+          ],
+          [
+            88.3217,
+            22.50255
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S022",
+        "start_node_id": "GH-L03",
+        "end_node_id": "GH-L10",
+        "distance_m": 115,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.5,
+        "gradient_pct": 2.5,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 88, \"crutches\": 87, \"elderly\": 86, \"stroller\": 90, \"general\": 94}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock north-east alternative."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3201,
+            22.5042
+          ],
+          [
+            88.32065,
+            22.5051
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S023",
+        "start_node_id": "GH-L10",
+        "end_node_id": "GH-L04",
+        "distance_m": 200,
+        "surface": "paver",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.4,
+        "gradient_pct": 4.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 66, \"crutches\": 72, \"elderly\": 69, \"stroller\": 69, \"general\": 84}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock moderate gradient."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.32065,
+            22.5051
+          ],
+          [
+            88.3211,
+            22.50335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S024",
+        "start_node_id": "GH-L09",
+        "end_node_id": "GH-L03",
+        "distance_m": 118,
+        "surface": "asphalt",
+        "surface_condition": "good",
+        "clear_width_m": 1.8,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 92, \"crutches\": 91, \"elderly\": 90, \"stroller\": 92, \"general\": 96}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock direct north link."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31935,
+            22.505
+          ],
+          [
+            88.3201,
+            22.5042
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S025",
+        "start_node_id": "GH-L08",
+        "end_node_id": "GH-L12",
+        "distance_m": 184,
+        "surface": "concrete",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.5,
+        "gradient_pct": 1.5,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "temporary_vendor",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 70, \"crutches\": 76, \"elderly\": 74, \"stroller\": 72, \"general\": 86}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock temporary vendor obstruction."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3176,
+            22.50335
+          ],
+          [
+            88.31835,
+            22.50185
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S026",
+        "start_node_id": "GH-L12",
+        "end_node_id": "GH-L06",
+        "distance_m": 100,
+        "surface": "asphalt",
+        "surface_condition": "good",
+        "clear_width_m": 1.7,
+        "gradient_pct": 1.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 91, \"crutches\": 91, \"elderly\": 90, \"stroller\": 92, \"general\": 96}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock west-south connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31835,
+            22.50185
+          ],
+          [
+            88.3193,
+            22.50165
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S027",
+        "start_node_id": "GH-L11",
+        "end_node_id": "GH-L04",
+        "distance_m": 108,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.6,
+        "gradient_pct": 2.0,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 90, \"crutches\": 90, \"elderly\": 88, \"stroller\": 91, \"general\": 95}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock alternative east connector."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3217,
+            22.50255
+          ],
+          [
+            88.3211,
+            22.50335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S028",
+        "start_node_id": "GH-L07",
+        "end_node_id": "GH-L12",
+        "distance_m": 64,
+        "surface": "asphalt",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.4,
+        "gradient_pct": 1.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "parked_two_wheeler",
+        "lighting": "moderate",
+        "scores": "{\"wheelchair\": 70, \"crutches\": 77, \"elderly\": 74, \"stroller\": 72, \"general\": 85}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock local-lane route."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.31785,
+            22.5022
+          ],
+          [
+            88.31835,
+            22.50185
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S029",
+        "start_node_id": "GH-L01",
+        "end_node_id": "GH-L05",
+        "distance_m": 191,
+        "surface": "concrete",
+        "surface_condition": "good",
+        "clear_width_m": 1.8,
+        "gradient_pct": 1.5,
+        "stairs": false,
+        "ramp_available": true,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 93, \"crutches\": 92, \"elderly\": 91, \"stroller\": 94, \"general\": 97}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock accessible central-south link."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.319,
+            22.5033
+          ],
+          [
+            88.32055,
+            22.50235
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "path_segment",
+        "id": "GH-S030",
+        "start_node_id": "GH-L04",
+        "end_node_id": "GH-L10",
+        "distance_m": 200,
+        "surface": "concrete",
+        "surface_condition": "moderate",
+        "clear_width_m": 1.25,
+        "gradient_pct": 6.0,
+        "stairs": false,
+        "ramp_available": null,
+        "obstruction": "none",
+        "lighting": "good",
+        "scores": "{\"wheelchair\": 49, \"crutches\": 62, \"elderly\": 56, \"stroller\": 54, \"general\": 79}",
+        "data_status": "synthetic_mock",
+        "last_verified_at": null,
+        "notes": "Mock high-gradient shortcut."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            88.3211,
+            22.50335
+          ],
+          [
+            88.32065,
+            22.5051
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+id,name,type,latitude,longitude,is_mock
+GH-L01,Diamond Harbour Road Access Point,junction,22.5033,88.319,True
+GH-L02,North Residential Junction,junction,22.50445,88.31835,True
+GH-L03,Neighbourhood Pharmacy,pharmacy,22.5042,88.3201,True
+GH-L04,Community Park Entrance,park,22.50335,88.3211,True
+GH-L05,Local Market Corner,market,22.50235,88.32055,True
+GH-L06,South Residential Junction,junction,22.50165,88.3193,True
+GH-L07,Bus Stop Access Point,transit,22.5022,88.31785,True
+GH-L08,Clinic Access Point,clinic,22.50335,88.3176,True
+GH-L09,Community Hall Entrance,community,22.505,88.31935,True
+GH-L10,School Lane Junction,school,22.5051,88.32065,True
+GH-L11,East Lane Junction,junction,22.50255,88.3217,True
+GH-L12,West Lane Junction,junction,22.50185,88.31835,True

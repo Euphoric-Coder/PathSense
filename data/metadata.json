@@ -1,0 +1,14 @@
+{
+  "project": "PathSense",
+  "dataset_version": "0.1.0-mock",
+  "pilot_label": "Gholeshapur–Behala Mock Pilot",
+  "city": "Kolkata",
+  "state": "West Bengal",
+  "country": "India",
+  "coordinate_reference": "WGS84 / EPSG:4326",
+  "mock_center": {
+    "latitude": 22.5033,
+    "longitude": 88.319
+  },
+  "warning": "All landmarks, path conditions, barriers, accessibility scores, and most coordinates in this dataset are synthetic demo data. They are NOT verified accessibility facts. Replace them with field-collected observations before presenting them as real-world data."
+}

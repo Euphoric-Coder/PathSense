@@ -1,0 +1,67 @@
+export const theme = {
+  colors: {
+    primary: '#0B5FFF',
+    primaryDark: '#0844C4',
+    primaryLight: '#3D82FF',
+    background: '#F2F4F8',
+    surface: '#FFFFFF',
+    surfaceElevated: '#FFFFFF',
+    text: '#0F172A',
+    textSecondary: '#475569',
+    textMuted: '#94A3B8',
+    border: '#E2E8F0',
+    borderStrong: '#CBD5E1',
+    success: '#1B9E5B',
+    warning: '#E08A1E',
+    error: '#D43A2F',
+    info: '#0B5FFF',
+    overlay: 'rgba(15, 23, 42, 0.45)',
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    xxl: 24,
+    xxxl: 32,
+  },
+  radii: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    pill: 999,
+  },
+  shadows: {
+    card: {
+      shadowColor: '#0F172A',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    elevated: {
+      shadowColor: '#0F172A',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      elevation: 6,
+    },
+  },
+  typography: {
+    titleLarge: { fontSize: 22, fontWeight: '800' as const },
+    title: { fontSize: 18, fontWeight: '700' as const },
+    subtitle: { fontSize: 15, fontWeight: '600' as const },
+    body: { fontSize: 14, fontWeight: '400' as const },
+    caption: { fontSize: 12, fontWeight: '500' as const },
+    micro: { fontSize: 10, fontWeight: '600' as const },
+  },
+};
+
+export const MAP_INITIAL_REGION = {
+  latitude: 22.5033,
+  longitude: 88.319,
+  latitudeDelta: 0.006,
+  longitudeDelta: 0.006,
+};

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "SC-001",
+    "origin": "GH-L07",
+    "destination": "GH-L04",
+    "profiles": [
+      "wheelchair",
+      "general"
+    ],
+    "purpose": "Demonstrate that the shortest-looking path need not be the most accessible."
+  },
+  {
+    "id": "SC-002",
+    "origin": "GH-L08",
+    "destination": "GH-L05",
+    "profiles": [
+      "wheelchair",
+      "crutches",
+      "elderly"
+    ],
+    "purpose": "Demonstrate profile-dependent route weighting."
+  },
+  {
+    "id": "SC-003",
+    "origin": "GH-L09",
+    "destination": "GH-L06",
+    "profiles": [
+      "wheelchair",
+      "stroller",
+      "general"
+    ],
+    "purpose": "Demonstrate avoiding step and construction penalties."
+  }
+]

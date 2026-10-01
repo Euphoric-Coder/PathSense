@@ -1,0 +1,62 @@
+[
+  {
+    "id": "GH-B001",
+    "segment_id": "GH-S007",
+    "type": "uneven_surface",
+    "severity": "high",
+    "description": "Synthetic example: broken/uneven paving reduces wheel usability.",
+    "source": "mock_seed",
+    "ai_confidence": 0.91,
+    "verification_count": 4,
+    "status": "active",
+    "is_mock": true
+  },
+  {
+    "id": "GH-B002",
+    "segment_id": "GH-S016",
+    "type": "stairs",
+    "severity": "critical",
+    "description": "Synthetic example: step-only shortcut with no ramp.",
+    "source": "mock_seed",
+    "ai_confidence": 0.98,
+    "verification_count": 7,
+    "status": "active",
+    "is_mock": true
+  },
+  {
+    "id": "GH-B003",
+    "segment_id": "GH-S021",
+    "type": "construction",
+    "severity": "critical",
+    "description": "Synthetic example: temporary construction narrows the usable path.",
+    "source": "mock_seed",
+    "ai_confidence": 0.89,
+    "verification_count": 3,
+    "status": "active",
+    "is_mock": true
+  },
+  {
+    "id": "GH-B004",
+    "segment_id": "GH-S013",
+    "type": "drain_cover_gap",
+    "severity": "high",
+    "description": "Synthetic example: discontinuity near drain cover.",
+    "source": "mock_seed",
+    "ai_confidence": 0.86,
+    "verification_count": 2,
+    "status": "active",
+    "is_mock": true
+  },
+  {
+    "id": "GH-B005",
+    "segment_id": "GH-S008",
+    "type": "encroachment",
+    "severity": "moderate",
+    "description": "Synthetic example: temporary narrowing near a market-side segment.",
+    "source": "mock_seed",
+    "ai_confidence": 0.82,
+    "verification_count": 5,
+    "status": "active",
+    "is_mock": true
+  }
+]
