@@ -35,7 +35,7 @@ interface Props {
   activeProfile: ProfileId;
   onProfileChange: (profile: ProfileId) => void;
   barrierReports?: BarrierReport[];
-  onResolveBarrier?: (reportId: string) => void;
+  onBarrierTap?: (report: BarrierReport) => void;
 }
 
 export default function PathSenseMap({
@@ -46,7 +46,7 @@ export default function PathSenseMap({
   activeProfile,
   onProfileChange,
   barrierReports = [],
-  onResolveBarrier,
+  onBarrierTap,
 }: Props) {
   const mapRef = useRef<MapView>(null);
   const insets = useSafeAreaInsets();
@@ -249,7 +249,7 @@ export default function PathSenseMap({
         pinColor={theme.colors.error}
         zIndex={100}
       >
-        <Callout tooltip onPress={() => onResolveBarrier?.(report.id)}>
+        <Callout tooltip onPress={() => onBarrierTap?.(report)}>
           <View style={styles.customCallout}>
             <View style={styles.customCalloutBubble}>
               <Text style={styles.calloutLabel}>BARRIER ({report.severity.toUpperCase()})</Text>
@@ -259,7 +259,7 @@ export default function PathSenseMap({
                 <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 4 }}>{report.description}</Text>
               ) : null}
               <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: 6 }}>
-                <Text style={{ fontSize: 12, color: theme.colors.primary, fontWeight: '700', textAlign: 'center' }}>Tap to resolve</Text>
+                <Text style={{ fontSize: 12, color: theme.colors.primary, fontWeight: '700', textAlign: 'center' }}>Tap for details</Text>
               </View>
             </View>
             <View style={styles.customCalloutArrow} />

@@ -14,6 +14,8 @@ import { DEFAULT_PROFILE } from '@/src/data/mobilityProfiles';
 import { theme } from '@/src/constants/theme';
 import { getBarrierReports, saveBarrierReport, updateBarrierReport, deleteBarrierReport } from '@/src/services/barrierStorage';
 import { useEffect, useMemo, useState } from 'react';
+import ActiveBarriersModal from '@/src/components/ActiveBarriersModal';
+import BarrierDetailsModal from '@/src/components/BarrierDetailsModal';
 
 const DEBUG_V04 = false;
 
@@ -31,6 +33,8 @@ export default function HomeScreen() {
 
   const [barrierReports, setBarrierReports] = useState<BarrierReport[]>([]);
   const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+  const [isActiveBarriersVisible, setIsActiveBarriersVisible] = useState(false);
+  const [selectedBarrierReport, setSelectedBarrierReport] = useState<BarrierReport | null>(null);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -92,26 +96,26 @@ export default function HomeScreen() {
     await finalizeBarrierSubmit(report);
   };
 
-  const handleResolveBarrier = (id: string) => {
-    Alert.alert('Resolve Barrier', 'Mark this barrier as resolved?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Resolve',
-        style: 'default',
-        onPress: async () => {
-          const report = barrierReports.find((r) => r.id === id);
-          if (report) {
-            const updated = { ...report, status: 'resolved' as const };
-            await updateBarrierReport(updated);
-            setBarrierReports(prev => prev.map(r => r.id === id ? updated : r));
-            
-            if (routeSegmentIds.size > 0) {
-              Alert.alert('Route Updated', 'Route updated due to a resolved accessibility barrier.');
-            }
-          }
-        },
-      },
-    ]);
+  const handleResolveBarrier = async (id: string) => {
+    const report = barrierReports.find((r) => r.id === id);
+    if (report) {
+      const updated = { ...report, status: 'resolved' as const, updatedAt: new Date().toISOString() };
+      await updateBarrierReport(updated);
+      setBarrierReports(prev => prev.map(r => r.id === id ? updated : r));
+      
+      if (routeSegmentIds.size > 0) {
+        Alert.alert('Route Updated', 'Route updated after barrier resolution.');
+      }
+    }
+  };
+
+  const handleDeleteBarrier = async (id: string) => {
+    await deleteBarrierReport(id);
+    setBarrierReports(prev => prev.filter(r => r.id !== id));
+    
+    if (routeSegmentIds.size > 0) {
+      // Just a small toast or nothing, we'll just let the route recalculate.
+    }
   };
 
   const handleRouteChange = (segmentIds: Set<string>, nodeIds: string[]) => {
@@ -149,7 +153,7 @@ export default function HomeScreen() {
             activeProfile={activeProfile}
             onProfileChange={setActiveProfile}
             barrierReports={activeBarrierReports}
-            onResolveBarrier={handleResolveBarrier}
+            onBarrierTap={setSelectedBarrierReport}
           />
           <View style={styles.routePlannerOverlay} pointerEvents="box-none">
             <RoutePlanner
@@ -163,6 +167,19 @@ export default function HomeScreen() {
             />
           </View>
           <View style={styles.fabContainer} pointerEvents="box-none">
+            {activeBarrierReports.length > 0 && (
+              <Pressable
+                style={styles.activeBarriersFab}
+                onPress={() => setIsActiveBarriersVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Open active barriers"
+              >
+                <AlertTriangle color={theme.colors.warning} size={20} />
+                <Text style={styles.activeBarriersFabText}>
+                  Active Barriers ({activeBarrierReports.length})
+                </Text>
+              </Pressable>
+            )}
             <Pressable
               style={styles.fab}
               onPress={() => setIsReportModalVisible(true)}
@@ -180,6 +197,22 @@ export default function HomeScreen() {
         visible={isReportModalVisible}
         onClose={() => setIsReportModalVisible(false)}
         onSubmit={handleBarrierSubmit}
+        routeSegmentIds={routeSegmentIds}
+      />
+
+      <ActiveBarriersModal
+        visible={isActiveBarriersVisible}
+        onClose={() => setIsActiveBarriersVisible(false)}
+        reports={barrierReports}
+        onSelectBarrier={setSelectedBarrierReport}
+      />
+
+      <BarrierDetailsModal
+        visible={selectedBarrierReport !== null}
+        onClose={() => setSelectedBarrierReport(null)}
+        report={selectedBarrierReport}
+        onResolve={handleResolveBarrier}
+        onDelete={handleDeleteBarrier}
         routeSegmentIds={routeSegmentIds}
       />
     </SafeAreaView>
@@ -341,6 +374,24 @@ const styles = StyleSheet.create({
   fabText: {
     color: '#FFFFFF',
     fontWeight: '700',
+    fontSize: 14,
+  },
+  activeBarriersFab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.warning,
+    ...theme.shadows.card,
+  },
+  activeBarriersFabText: {
+    color: theme.colors.warning,
+    fontWeight: '800',
     fontSize: 14,
   }
 });
