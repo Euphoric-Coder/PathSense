@@ -38,6 +38,8 @@ export interface GraphEdge {
   accessibilityPenalty: number;
   normalizedDistance: number;
   isHardBarrier: boolean;
+  activeBarrierCount: number;
+  criticalBarrierCount: number;
 }
 
 export type AdjacencyList = Map<string, GraphEdge[]>;
@@ -71,6 +73,17 @@ export function buildAdjacencyList(
       (profile === 'wheelchair' || profile === 'stroller') &&
       seg.stairs &&
       !seg.rampAvailable;
+    
+    let activeBarrierCount = 0;
+    let criticalBarrierCount = 0;
+    for (const report of reportsForSeg) {
+      if (['active', 'open', 'reported'].includes(report.status)) {
+        activeBarrierCount++;
+        if (report.severity === 'critical' || report.severity === 'high') {
+          criticalBarrierCount++;
+        }
+      }
+    }
 
     const forwardEdge: GraphEdge = {
       segment: seg,
@@ -79,6 +92,8 @@ export function buildAdjacencyList(
       accessibilityPenalty,
       normalizedDistance,
       isHardBarrier,
+      activeBarrierCount,
+      criticalBarrierCount,
     };
     const reverseEdge: GraphEdge = {
       segment: seg,
@@ -87,6 +102,8 @@ export function buildAdjacencyList(
       accessibilityPenalty,
       normalizedDistance,
       isHardBarrier,
+      activeBarrierCount,
+      criticalBarrierCount,
     };
 
     const forwardList = adj.get(seg.startNodeId) ?? [];
@@ -203,6 +220,8 @@ function computeMetrics(
   let moderateSegmentCount = 0;
   let stairsWithoutRampCount = 0;
   let constructionCount = 0;
+  let activeBarrierCount = 0;
+  let criticalBarrierCount = 0;
 
   for (const edge of edges) {
     totalDistanceMeters += edge.segment.distanceMeters;
@@ -219,6 +238,8 @@ function computeMetrics(
     if (edge.segment.obstruction === 'construction') {
       constructionCount++;
     }
+    activeBarrierCount += edge.activeBarrierCount;
+    criticalBarrierCount += edge.criticalBarrierCount;
   }
 
   const segmentCount = edges.length;
@@ -239,6 +260,8 @@ function computeMetrics(
     moderateSegmentCount,
     stairsWithoutRampCount,
     constructionCount,
+    activeBarrierCount,
+    criticalBarrierCount,
     estimatedWalkingMinutes,
   };
 }
@@ -311,6 +334,60 @@ function buildExplanation(
   return '';
 }
 
+function findAllPaths(
+  adj: AdjacencyList,
+  startNodeId: string,
+  endNodeId: string,
+): GraphEdge[][] {
+  const paths: GraphEdge[][] = [];
+  const visited = new Set<string>();
+
+  function dfs(currentId: string, currentPath: GraphEdge[]) {
+    if (currentId === endNodeId) {
+      paths.push([...currentPath]);
+      return;
+    }
+    visited.add(currentId);
+    const edges = adj.get(currentId) || [];
+    for (const edge of edges) {
+      if (!visited.has(edge.toNodeId)) {
+        currentPath.push(edge);
+        dfs(edge.toNodeId, currentPath);
+        currentPath.pop();
+      }
+    }
+    visited.delete(currentId);
+  }
+
+  dfs(startNodeId, []);
+  return paths;
+}
+
+function compareAccessibleRoutes(a: { edges: GraphEdge[], metrics: RouteMetrics }, b: { edges: GraphEdge[], metrics: RouteMetrics }): number {
+  const aHasHardBarrier = a.edges.some(e => e.isHardBarrier);
+  const bHasHardBarrier = b.edges.some(e => e.isHardBarrier);
+  if (aHasHardBarrier !== bHasHardBarrier) return aHasHardBarrier ? 1 : -1;
+
+  if (a.metrics.minimumAccessibilityScore !== b.metrics.minimumAccessibilityScore) {
+    return b.metrics.minimumAccessibilityScore - a.metrics.minimumAccessibilityScore;
+  }
+  if (a.metrics.averageAccessibilityScore !== b.metrics.averageAccessibilityScore) {
+    return b.metrics.averageAccessibilityScore - a.metrics.averageAccessibilityScore;
+  }
+  if (a.metrics.difficultSegmentCount !== b.metrics.difficultSegmentCount) {
+    return a.metrics.difficultSegmentCount - b.metrics.difficultSegmentCount;
+  }
+  if (a.metrics.criticalBarrierCount !== b.metrics.criticalBarrierCount) {
+    return a.metrics.criticalBarrierCount - b.metrics.criticalBarrierCount;
+  }
+  if (a.metrics.moderateSegmentCount !== b.metrics.moderateSegmentCount) {
+    return a.metrics.moderateSegmentCount - b.metrics.moderateSegmentCount;
+  }
+  return a.metrics.totalDistanceMeters - b.metrics.totalDistanceMeters;
+}
+
+const DEBUG_ROUTING = false;
+
 export function calculateRoute(
   segments: PathSegment[],
   startNodeId: string,
@@ -323,21 +400,51 @@ export function calculateRoute(
   if (startNodeId === endNodeId) return null;
 
   const adj = buildAdjacencyList(segments, profile, barrierReports);
-  const result = dijkstra(adj, startNodeId, endNodeId, mode);
-  if (!result) return null;
+  
+  let resultEdges: GraphEdge[] | null = null;
+  let finalCost = 0;
 
-  const metrics = computeMetrics(result.edges, profile);
-  const warnings = buildWarnings(result.edges, metrics);
+  if (mode === 'accessible') {
+    const paths = findAllPaths(adj, startNodeId, endNodeId);
+    if (paths.length === 0) return null;
+    
+    const candidates = paths.map(edges => ({ edges, metrics: computeMetrics(edges, profile) }));
+    candidates.sort(compareAccessibleRoutes);
+    
+    if (DEBUG_ROUTING) {
+      console.log('ROUTE_MODE_COMPARISON');
+      candidates.forEach(c => {
+        console.log(`mode: accessible, segmentIds: ${c.edges.map(e => e.segment.id).join(',')}, distance: ${c.metrics.totalDistanceMeters}, average: ${c.metrics.averageAccessibilityScore}, minimum: ${c.metrics.minimumAccessibilityScore}, difficultCount: ${c.metrics.difficultSegmentCount}, moderateCount: ${c.metrics.moderateSegmentCount}, criticalBarrierCount: ${c.metrics.criticalBarrierCount}`);
+      });
+      console.log('MOST_ACCESSIBLE_SELECTED');
+      const win = candidates[0].metrics;
+      console.log(`distance: ${win.totalDistanceMeters}, average: ${win.averageAccessibilityScore}, minimum: ${win.minimumAccessibilityScore}`);
+    }
+
+    resultEdges = candidates[0].edges;
+    finalCost = resultEdges.reduce((sum, e) => sum + computeEdgeCost(e, mode), 0);
+  } else {
+    const result = dijkstra(adj, startNodeId, endNodeId, mode);
+    if (!result) return null;
+    resultEdges = result.edges;
+    finalCost = result.cost;
+  }
+
+  const metrics = computeMetrics(resultEdges, profile);
+  const warnings = buildWarnings(resultEdges, metrics);
   const explanation = buildExplanation(mode, metrics, shortestMetrics);
+
+  const nodeIds = [startNodeId, ...resultEdges.map(e => e.toNodeId)];
+  const segmentIds = resultEdges.map(e => e.segment.id);
 
   return {
     mode,
-    nodeIds: result.nodeIds,
-    segmentIds: result.segmentIds,
+    nodeIds,
+    segmentIds,
     totalDistanceMeters: metrics.totalDistanceMeters,
     averageAccessibilityScore: metrics.averageAccessibilityScore,
     minimumAccessibilityScore: metrics.minimumAccessibilityScore,
-    totalCost: Math.round(result.cost * 1000) / 1000,
+    totalCost: Math.round(finalCost * 1000) / 1000,
     warnings,
     metrics,
     explanation,

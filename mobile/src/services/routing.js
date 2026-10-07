@@ -1,4 +1,13 @@
 "use strict";
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ROUTE_MODE_LABELS = exports.ROUTE_MODE_WEIGHTS = void 0;
 exports.buildAdjacencyList = buildAdjacencyList;
@@ -49,6 +58,17 @@ function buildAdjacencyList(segments, profile, barrierReports) {
         var isHardBarrier = (profile === 'wheelchair' || profile === 'stroller') &&
             seg.stairs &&
             !seg.rampAvailable;
+        var activeBarrierCount = 0;
+        var criticalBarrierCount = 0;
+        for (var _f = 0, reportsForSeg_1 = reportsForSeg; _f < reportsForSeg_1.length; _f++) {
+            var report = reportsForSeg_1[_f];
+            if (['active', 'open', 'reported'].includes(report.status)) {
+                activeBarrierCount++;
+                if (report.severity === 'critical' || report.severity === 'high') {
+                    criticalBarrierCount++;
+                }
+            }
+        }
         var forwardEdge = {
             segment: seg,
             toNodeId: seg.endNodeId,
@@ -56,6 +76,8 @@ function buildAdjacencyList(segments, profile, barrierReports) {
             accessibilityPenalty: accessibilityPenalty,
             normalizedDistance: normalizedDistance,
             isHardBarrier: isHardBarrier,
+            activeBarrierCount: activeBarrierCount,
+            criticalBarrierCount: criticalBarrierCount,
         };
         var reverseEdge = {
             segment: seg,
@@ -64,6 +86,8 @@ function buildAdjacencyList(segments, profile, barrierReports) {
             accessibilityPenalty: accessibilityPenalty,
             normalizedDistance: normalizedDistance,
             isHardBarrier: isHardBarrier,
+            activeBarrierCount: activeBarrierCount,
+            criticalBarrierCount: criticalBarrierCount,
         };
         var forwardList = (_c = adj.get(seg.startNodeId)) !== null && _c !== void 0 ? _c : [];
         forwardList.push(forwardEdge);
@@ -149,6 +173,8 @@ function computeMetrics(edges, profile) {
     var moderateSegmentCount = 0;
     var stairsWithoutRampCount = 0;
     var constructionCount = 0;
+    var activeBarrierCount = 0;
+    var criticalBarrierCount = 0;
     for (var _i = 0, edges_3 = edges; _i < edges_3.length; _i++) {
         var edge = edges_3[_i];
         totalDistanceMeters += edge.segment.distanceMeters;
@@ -165,6 +191,8 @@ function computeMetrics(edges, profile) {
         if (edge.segment.obstruction === 'construction') {
             constructionCount++;
         }
+        activeBarrierCount += edge.activeBarrierCount;
+        criticalBarrierCount += edge.criticalBarrierCount;
     }
     var segmentCount = edges.length;
     var averageAccessibilityScore = segmentCount > 0 ? Math.round(totalAccessibility / segmentCount) : 0;
@@ -179,6 +207,8 @@ function computeMetrics(edges, profile) {
         moderateSegmentCount: moderateSegmentCount,
         stairsWithoutRampCount: stairsWithoutRampCount,
         constructionCount: constructionCount,
+        activeBarrierCount: activeBarrierCount,
+        criticalBarrierCount: criticalBarrierCount,
         estimatedWalkingMinutes: estimatedWalkingMinutes,
     };
 }
@@ -235,25 +265,87 @@ function buildExplanation(mode, metrics, shortestMetrics) {
     }
     return '';
 }
+function findAllPaths(adj, startNodeId, endNodeId) {
+    var paths = [];
+    var visited = new Set();
+    function dfs(currentId, currentPath) {
+        if (currentId === endNodeId) {
+            paths.push(__spreadArray([], currentPath, true));
+            return;
+        }
+        visited.add(currentId);
+        var edges = adj.get(currentId) || [];
+        for (var _i = 0, edges_4 = edges; _i < edges_4.length; _i++) {
+            var edge = edges_4[_i];
+            if (!visited.has(edge.toNodeId)) {
+                currentPath.push(edge);
+                dfs(edge.toNodeId, currentPath);
+                currentPath.pop();
+            }
+        }
+        visited.delete(currentId);
+    }
+    dfs(startNodeId, []);
+    return paths;
+}
+function compareAccessibleRoutes(a, b) {
+    var aHasHardBarrier = a.edges.some(function (e) { return e.isHardBarrier; });
+    var bHasHardBarrier = b.edges.some(function (e) { return e.isHardBarrier; });
+    if (aHasHardBarrier !== bHasHardBarrier)
+        return aHasHardBarrier ? 1 : -1;
+    if (a.metrics.minimumAccessibilityScore !== b.metrics.minimumAccessibilityScore) {
+        return b.metrics.minimumAccessibilityScore - a.metrics.minimumAccessibilityScore;
+    }
+    if (a.metrics.averageAccessibilityScore !== b.metrics.averageAccessibilityScore) {
+        return b.metrics.averageAccessibilityScore - a.metrics.averageAccessibilityScore;
+    }
+    if (a.metrics.difficultSegmentCount !== b.metrics.difficultSegmentCount) {
+        return a.metrics.difficultSegmentCount - b.metrics.difficultSegmentCount;
+    }
+    if (a.metrics.criticalBarrierCount !== b.metrics.criticalBarrierCount) {
+        return a.metrics.criticalBarrierCount - b.metrics.criticalBarrierCount;
+    }
+    if (a.metrics.moderateSegmentCount !== b.metrics.moderateSegmentCount) {
+        return a.metrics.moderateSegmentCount - b.metrics.moderateSegmentCount;
+    }
+    return a.metrics.totalDistanceMeters - b.metrics.totalDistanceMeters;
+}
 function calculateRoute(segments, startNodeId, endNodeId, profile, mode, shortestMetrics, barrierReports) {
     if (shortestMetrics === void 0) { shortestMetrics = null; }
     if (startNodeId === endNodeId)
         return null;
     var adj = buildAdjacencyList(segments, profile, barrierReports);
-    var result = dijkstra(adj, startNodeId, endNodeId, mode);
-    if (!result)
-        return null;
-    var metrics = computeMetrics(result.edges, profile);
-    var warnings = buildWarnings(result.edges, metrics);
+    var resultEdges = null;
+    var finalCost = 0;
+    if (mode === 'accessible') {
+        var paths = findAllPaths(adj, startNodeId, endNodeId);
+        if (paths.length === 0)
+            return null;
+        var candidates = paths.map(function (edges) { return ({ edges: edges, metrics: computeMetrics(edges, profile) }); });
+        candidates.sort(compareAccessibleRoutes);
+        resultEdges = candidates[0].edges;
+        finalCost = resultEdges.reduce(function (sum, e) { return sum + computeEdgeCost(e, mode); }, 0);
+    }
+    else {
+        var result = dijkstra(adj, startNodeId, endNodeId, mode);
+        if (!result)
+            return null;
+        resultEdges = result.edges;
+        finalCost = result.cost;
+    }
+    var metrics = computeMetrics(resultEdges, profile);
+    var warnings = buildWarnings(resultEdges, metrics);
     var explanation = buildExplanation(mode, metrics, shortestMetrics);
+    var nodeIds = __spreadArray([startNodeId], resultEdges.map(function (e) { return e.toNodeId; }), true);
+    var segmentIds = resultEdges.map(function (e) { return e.segment.id; });
     return {
         mode: mode,
-        nodeIds: result.nodeIds,
-        segmentIds: result.segmentIds,
+        nodeIds: nodeIds,
+        segmentIds: segmentIds,
         totalDistanceMeters: metrics.totalDistanceMeters,
         averageAccessibilityScore: metrics.averageAccessibilityScore,
         minimumAccessibilityScore: metrics.minimumAccessibilityScore,
-        totalCost: Math.round(result.cost * 1000) / 1000,
+        totalCost: Math.round(finalCost * 1000) / 1000,
         warnings: warnings,
         metrics: metrics,
         explanation: explanation,

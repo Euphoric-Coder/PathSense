@@ -154,6 +154,8 @@ export interface RouteMetrics {
   moderateSegmentCount: number;
   stairsWithoutRampCount: number;
   constructionCount: number;
+  activeBarrierCount: number;
+  criticalBarrierCount: number;
   estimatedWalkingMinutes: number;
 }
 
