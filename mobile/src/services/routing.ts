@@ -341,10 +341,20 @@ function findAllPaths(
 ): GraphEdge[][] {
   const paths: GraphEdge[][] = [];
   const visited = new Set<string>();
+  let pathCount = 0;
+  const MAX_PATHS = 10000; // safety bound
+
+  // NOTE: For the V0.4 demo (small graph of ~12 nodes, ~30 paths), 
+  // an exhaustive simple path DFS is acceptable.
+  // Future city-scale iteration must replace this exhaustive enumeration 
+  // with a multi-criteria Dijkstra/A* or Pareto-frontier search.
 
   function dfs(currentId: string, currentPath: GraphEdge[]) {
+    if (pathCount >= MAX_PATHS) return;
+
     if (currentId === endNodeId) {
       paths.push([...currentPath]);
+      pathCount++;
       return;
     }
     visited.add(currentId);
@@ -363,26 +373,45 @@ function findAllPaths(
   return paths;
 }
 
+// These tolerances prevent insignificant score differences from causing
+// disproportionately large detours.
+const ACCESSIBLE_MIN_SCORE_TOLERANCE = 2;
+const ACCESSIBLE_AVG_SCORE_TOLERANCE = 2;
+
 function compareAccessibleRoutes(a: { edges: GraphEdge[], metrics: RouteMetrics }, b: { edges: GraphEdge[], metrics: RouteMetrics }): number {
+  // 1. no hard barrier
   const aHasHardBarrier = a.edges.some(e => e.isHardBarrier);
   const bHasHardBarrier = b.edges.some(e => e.isHardBarrier);
   if (aHasHardBarrier !== bHasHardBarrier) return aHasHardBarrier ? 1 : -1;
 
-  if (a.metrics.minimumAccessibilityScore !== b.metrics.minimumAccessibilityScore) {
+  // 2. minimum accessibility, with tolerance
+  const minDiff = Math.abs(a.metrics.minimumAccessibilityScore - b.metrics.minimumAccessibilityScore);
+  if (minDiff > ACCESSIBLE_MIN_SCORE_TOLERANCE) {
     return b.metrics.minimumAccessibilityScore - a.metrics.minimumAccessibilityScore;
   }
-  if (a.metrics.averageAccessibilityScore !== b.metrics.averageAccessibilityScore) {
-    return b.metrics.averageAccessibilityScore - a.metrics.averageAccessibilityScore;
-  }
-  if (a.metrics.difficultSegmentCount !== b.metrics.difficultSegmentCount) {
-    return a.metrics.difficultSegmentCount - b.metrics.difficultSegmentCount;
-  }
+
+  // 3. fewer critical active barriers
   if (a.metrics.criticalBarrierCount !== b.metrics.criticalBarrierCount) {
     return a.metrics.criticalBarrierCount - b.metrics.criticalBarrierCount;
   }
+
+  // 4. fewer difficult segments
+  if (a.metrics.difficultSegmentCount !== b.metrics.difficultSegmentCount) {
+    return a.metrics.difficultSegmentCount - b.metrics.difficultSegmentCount;
+  }
+
+  // 5. fewer moderate segments
   if (a.metrics.moderateSegmentCount !== b.metrics.moderateSegmentCount) {
     return a.metrics.moderateSegmentCount - b.metrics.moderateSegmentCount;
   }
+
+  // 6. average accessibility, with tolerance
+  const avgDiff = Math.abs(a.metrics.averageAccessibilityScore - b.metrics.averageAccessibilityScore);
+  if (avgDiff > ACCESSIBLE_AVG_SCORE_TOLERANCE) {
+    return b.metrics.averageAccessibilityScore - a.metrics.averageAccessibilityScore;
+  }
+
+  // 7. shorter distance
   return a.metrics.totalDistanceMeters - b.metrics.totalDistanceMeters;
 }
 
