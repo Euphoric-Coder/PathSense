@@ -1,3 +1,5 @@
+import type { AIBarrierAnalysis, AIAnalysisMetadata } from '@/src/services/ai/types';
+
 export type LandmarkType =
   | 'junction'
   | 'pharmacy'
@@ -121,6 +123,12 @@ export interface BarrierReport {
   createdAt: string;
   updatedAt?: string;
   isMock?: boolean;
+  aiAnalysis?: {
+    originalSuggestion: AIBarrierAnalysis;
+    userModified: boolean;
+    confidence: number;
+    metadata?: AIAnalysisMetadata;
+  };
 }
 
 export interface MobilityProfile {

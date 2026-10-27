@@ -20,7 +20,11 @@ import {
   Check, 
   ChevronRight, 
   Info,
-  Navigation
+  Navigation,
+  Sparkles,
+  Edit3,
+  RefreshCw,
+  CheckCircle,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -31,6 +35,13 @@ import { landmarks } from '@/src/data/landmarks';
 import { pathSegments } from '@/src/data/pathSegments';
 import { findNearestSegment } from '@/src/services/segmentMatching';
 import { theme } from '@/src/constants/theme';
+import { analyzeBarrierImage } from '@/src/services/ai/barrierAnalysis';
+import type { 
+  AIBarrierAnalysis, 
+  AIAnalysisMetadata, 
+  SurfaceCondition, 
+  EstimatedPassability 
+} from '@/src/services/ai/types';
 
 interface Props {
   visible: boolean;
@@ -59,6 +70,31 @@ const SEVERITIES: { value: BarrierSeverity; label: string; desc: string; color: 
   { value: 'critical', label: 'Critical / Blocked', desc: 'Route is completely unusable.', color: theme.colors.error, bgColor: theme.colors.error + '15' },
 ];
 
+const SAMPLE_FIXTURES: { id: string; label: string; type: BarrierType; uri: string }[] = [
+  { id: 'case-a-construction', label: '🚧 Construction (GH-S012)', type: 'construction', uri: 'https://images.unsplash.com/photo-1541888946425-d0fbb18f15f7?w=600&auto=format&fit=crop&q=80' },
+  { id: 'case-b-stairs', label: '🪜 Stairs No Ramp', type: 'stairs', uri: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=600&auto=format&fit=crop&q=80' },
+  { id: 'case-c-broken-surface', label: '🧱 Broken Pavement', type: 'broken_surface', uri: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=600&auto=format&fit=crop&q=80' },
+  { id: 'case-d-obstruction', label: '🛵 Parked Vehicle', type: 'obstruction', uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80' },
+  { id: 'case-e-narrow-path', label: '📏 Narrow Path', type: 'narrow_path', uri: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80' },
+  { id: 'case-f-ambiguous', label: '🚶 Clear Sidewalk', type: 'other', uri: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&auto=format&fit=crop&q=80' },
+];
+
+const SURFACE_CONDITIONS: { value: SurfaceCondition; label: string }[] = [
+  { value: 'good', label: 'Good' },
+  { value: 'uneven', label: 'Uneven' },
+  { value: 'damaged', label: 'Damaged' },
+  { value: 'blocked', label: 'Blocked' },
+  { value: 'wet', label: 'Wet' },
+  { value: 'unknown', label: 'Unknown' },
+];
+
+const PASSABILITY_OPTIONS: { value: EstimatedPassability; label: string }[] = [
+  { value: 'passable', label: 'Passable' },
+  { value: 'difficult', label: 'Difficult' },
+  { value: 'likely_impassable', label: 'Likely Impassable' },
+  { value: 'unknown', label: 'Unknown' },
+];
+
 export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSegmentIds = new Set() }: Props) {
   const [step, setStep] = useState(1);
   const [showOtherPaths, setShowOtherPaths] = useState(false);
@@ -71,6 +107,17 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
   const [severity, setSeverity] = useState<BarrierSeverity | null>(null);
   const [description, setDescription] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // V0.5 AI Assistant State
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<AIBarrierAnalysis | null>(null);
+  const [aiMetadata, setAiMetadata] = useState<AIAnalysisMetadata | null>(null);
+  const [originalSuggestion, setOriginalSuggestion] = useState<AIBarrierAnalysis | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [isEditingAi, setIsEditingAi] = useState(false);
+  const [selectedFixtureId, setSelectedFixtureId] = useState<string | null>(null);
+  const [editSurfaceCondition, setEditSurfaceCondition] = useState<SurfaceCondition>('unknown');
+  const [editPassability, setEditPassability] = useState<EstimatedPassability>('unknown');
 
   useEffect(() => {
     if (visible) {
@@ -85,6 +132,15 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
       setDescription('');
       setIsGettingLocation(false);
       setShowOtherPaths(false);
+      setIsAnalyzing(false);
+      setAiAnalysis(null);
+      setAiMetadata(null);
+      setOriginalSuggestion(null);
+      setAiError(null);
+      setIsEditingAi(false);
+      setSelectedFixtureId(null);
+      setEditSurfaceCondition('unknown');
+      setEditPassability('unknown');
     }
   }, [visible]);
 
@@ -100,6 +156,10 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
     });
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
+      setSelectedFixtureId(null);
+      setAiAnalysis(null);
+      setOriginalSuggestion(null);
+      setAiError(null);
     }
   };
 
@@ -110,7 +170,80 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
     });
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
+      setSelectedFixtureId(null);
+      setAiAnalysis(null);
+      setOriginalSuggestion(null);
+      setAiError(null);
     }
+  };
+
+  const handleSelectSampleFixture = (fixture: typeof SAMPLE_FIXTURES[0]) => {
+    setImageUri(fixture.uri);
+    setSelectedFixtureId(fixture.id);
+    setAiAnalysis(null);
+    setOriginalSuggestion(null);
+    setAiError(null);
+  };
+
+  const handleAnalyzeWithAI = async () => {
+    if (!imageUri && !selectedFixtureId) return;
+    setIsAnalyzing(true);
+    setAiError(null);
+
+    try {
+      const result = await analyzeBarrierImage(imageUri || 'mock_uri', {
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+        fixtureId: selectedFixtureId || undefined,
+      });
+
+      setAiAnalysis(result.analysis);
+      setOriginalSuggestion(result.analysis);
+      setAiMetadata(result.metadata);
+      setEditSurfaceCondition(result.analysis.surfaceCondition);
+      setEditPassability(result.analysis.estimatedPassability);
+      setIsAnalyzing(false);
+    } catch (err: any) {
+      setAiError(err.message || 'AI analysis could not be completed.');
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleUseSuggestion = () => {
+    if (!aiAnalysis) return;
+    setBarrierType(aiAnalysis.barrierType);
+    setSeverity(aiAnalysis.severity);
+    if (!description && aiAnalysis.reasoningSummary) {
+      setDescription(aiAnalysis.reasoningSummary);
+    }
+    setStep(2);
+  };
+
+  const handleStartEditAnalysis = () => {
+    if (aiAnalysis) {
+      setBarrierType(aiAnalysis.barrierType);
+      setSeverity(aiAnalysis.severity);
+      setEditSurfaceCondition(aiAnalysis.surfaceCondition);
+      setEditPassability(aiAnalysis.estimatedPassability);
+    }
+    setIsEditingAi(true);
+  };
+
+  const handleSaveEditedAnalysis = () => {
+    if (aiAnalysis && barrierType && severity) {
+      setAiAnalysis({
+        ...aiAnalysis,
+        barrierType,
+        severity,
+        surfaceCondition: editSurfaceCondition,
+        estimatedPassability: editPassability,
+      });
+      if (!description && aiAnalysis.reasoningSummary) {
+        setDescription(aiAnalysis.reasoningSummary);
+      }
+    }
+    setIsEditingAi(false);
+    setStep(2);
   };
 
   const handleGetLocation = async () => {
@@ -131,7 +264,6 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
         setSuggestedSegment(match.nearestSegment);
         
         // If nearest segment belongs to current route, preselect it.
-        // Otherwise, just show it as a suggestion but do not silently override.
         if (routeSegmentIds.has(match.nearestSegment.id)) {
           setSegmentId(match.nearestSegment.id);
         }
@@ -158,6 +290,12 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
   const handleSubmit = () => {
     if (!segmentId || !barrierType || !severity) return;
     const id = 'BR-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const isAiAssisted = originalSuggestion !== null;
+    const userModified = isAiAssisted && (
+      barrierType !== originalSuggestion.barrierType ||
+      severity !== originalSuggestion.severity
+    );
+
     onSubmit({
       id,
       segmentId,
@@ -167,10 +305,16 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
       severity,
       description: description.trim() || undefined,
       imageUri: imageUri || undefined,
-      source: 'manual',
+      source: isAiAssisted ? 'ai_assisted' : 'manual',
       status: 'active',
       createdAt: new Date().toISOString(),
       isMock: false,
+      aiAnalysis: isAiAssisted ? {
+        originalSuggestion,
+        userModified,
+        confidence: originalSuggestion.confidence,
+        metadata: aiMetadata || undefined,
+      } : undefined,
     });
   };
 
@@ -184,53 +328,407 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
     );
   };
 
-  const renderStep1 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Add Photo (Optional)</Text>
-      <Text style={styles.stepSubtitle}>A picture helps visually verify the accessibility barrier.</Text>
-      
-      {imageUri ? (
-        <View style={styles.imagePreviewContainer}>
-          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-          <Pressable style={styles.removeImageBtn} onPress={() => setImageUri(null)}>
-            <X color="#FFF" size={20} />
-          </Pressable>
-        </View>
-      ) : (
-        <View style={styles.photoActions}>
-          <Pressable style={styles.photoCardBtn} onPress={handleTakePhoto}>
-            <View style={[styles.photoIconWrap, { backgroundColor: theme.colors.primary + '20' }]}>
-              <Camera color={theme.colors.primary} size={28} />
-            </View>
-            <View style={styles.photoCardTextWrap}>
-              <Text style={styles.photoCardTitle}>Take Photo</Text>
-              <Text style={styles.photoCardDesc}>Use your camera to capture the barrier</Text>
-            </View>
-            <ChevronRight color={theme.colors.borderStrong} size={20} />
-          </Pressable>
+  const renderStep1 = () => {
+    const isImageAvailable = Boolean(imageUri);
+    const confidencePct = aiAnalysis ? Math.round(aiAnalysis.confidence * 100) : 0;
+    const isLowConfidence = aiAnalysis ? aiAnalysis.confidence < 0.65 : false;
 
-          <Pressable style={styles.photoCardBtn} onPress={handleChooseGallery}>
-            <View style={[styles.photoIconWrap, { backgroundColor: '#8B5CF620' }]}>
-              <ImageIcon color="#8B5CF6" size={28} />
-            </View>
-            <View style={styles.photoCardTextWrap}>
-              <Text style={styles.photoCardTitle}>Upload from Gallery</Text>
-              <Text style={styles.photoCardDesc}>Select an existing photo from your device</Text>
-            </View>
-            <ChevronRight color={theme.colors.borderStrong} size={20} />
-          </Pressable>
-        </View>
-      )}
+    const confidenceLabel = aiAnalysis
+      ? aiAnalysis.confidence >= 0.85
+        ? `High confidence — ${confidencePct}%`
+        : aiAnalysis.confidence >= 0.65
+        ? `Moderate confidence — ${confidencePct}%`
+        : `Low confidence — ${confidencePct}%`
+      : '';
 
-      <View style={styles.navRow}>
-        <Pressable style={styles.primaryBtn} onPress={() => setStep(2)}>
-          <LinearGradient colors={[theme.colors.primary, '#004de6']} style={styles.btnGradient}>
-            <Text style={styles.primaryBtnText}>{imageUri ? 'Continue' : 'Skip Photo'}</Text>
-          </LinearGradient>
-        </Pressable>
+    return (
+      <View style={styles.stepContainer}>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+          <Text style={styles.stepTitle}>Add Photo (Optional)</Text>
+          <Text style={styles.stepSubtitle}>
+            A picture helps visually verify the accessibility barrier with AI assistance.
+          </Text>
+
+          {isImageAvailable ? (
+            <View style={styles.imagePreviewContainer}>
+              <Image source={{ uri: imageUri! }} style={styles.imagePreview} resizeMode="cover" />
+              <Pressable
+                style={styles.removeImageBtn}
+                onPress={() => {
+                  setImageUri(null);
+                  setSelectedFixtureId(null);
+                  setAiAnalysis(null);
+                  setOriginalSuggestion(null);
+                  setAiError(null);
+                  setIsEditingAi(false);
+                }}
+              >
+                <X color="#FFF" size={20} />
+              </Pressable>
+            </View>
+          ) : (
+            <>
+              <View style={styles.photoActions}>
+                <Pressable style={styles.photoCardBtn} onPress={handleTakePhoto}>
+                  <View style={[styles.photoIconWrap, { backgroundColor: theme.colors.primary + '20' }]}>
+                    <Camera color={theme.colors.primary} size={28} />
+                  </View>
+                  <View style={styles.photoCardTextWrap}>
+                    <Text style={styles.photoCardTitle}>Take Photo</Text>
+                    <Text style={styles.photoCardDesc}>Use your camera to capture the barrier</Text>
+                  </View>
+                  <ChevronRight color={theme.colors.borderStrong} size={20} />
+                </Pressable>
+
+                <Pressable style={styles.photoCardBtn} onPress={handleChooseGallery}>
+                  <View style={[styles.photoIconWrap, { backgroundColor: '#8B5CF620' }]}>
+                    <ImageIcon color="#8B5CF6" size={28} />
+                  </View>
+                  <View style={styles.photoCardTextWrap}>
+                    <Text style={styles.photoCardTitle}>Upload from Gallery</Text>
+                    <Text style={styles.photoCardDesc}>Select an existing photo from your device</Text>
+                  </View>
+                  <ChevronRight color={theme.colors.borderStrong} size={20} />
+                </Pressable>
+              </View>
+
+              <View style={styles.sampleFixturesSection}>
+                <Text style={styles.sampleFixturesTitle}>Or test with a sample barrier:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sampleScroll}>
+                  {SAMPLE_FIXTURES.map(fixture => (
+                    <Pressable
+                      key={fixture.id}
+                      style={[
+                        styles.sampleChip,
+                        selectedFixtureId === fixture.id && styles.sampleChipActive,
+                      ]}
+                      onPress={() => handleSelectSampleFixture(fixture)}
+                    >
+                      <Text
+                        style={[
+                          styles.sampleChipText,
+                          selectedFixtureId === fixture.id && styles.sampleChipTextActive,
+                        ]}
+                      >
+                        {fixture.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            </>
+          )}
+
+          {/* AI Loading State */}
+          {isAnalyzing && (
+            <View style={styles.aiLoadingCard}>
+              <ActivityIndicator size="large" color="#6366F1" style={{ marginBottom: 12 }} />
+              <Text style={styles.aiLoadingTitle}>Analyzing accessibility barrier...</Text>
+              <Text style={styles.aiLoadingSubtitle}>
+                Looking for stairs, surface damage, obstructions and other mobility barriers.
+              </Text>
+            </View>
+          )}
+
+          {/* AI Error State */}
+          {aiError && !isAnalyzing && (
+            <View style={styles.aiErrorCard}>
+              <View style={styles.aiErrorHeader}>
+                <AlertTriangle color={theme.colors.error} size={20} />
+                <Text style={styles.aiErrorTitle}>AI analysis could not be completed.</Text>
+              </View>
+              <Text style={styles.aiErrorText}>{aiError}</Text>
+              <Text style={styles.aiErrorSubtext}>You can continue the report manually.</Text>
+              <View style={styles.aiErrorActions}>
+                <Pressable
+                  style={styles.aiRetryBtn}
+                  onPress={handleAnalyzeWithAI}
+                  disabled={isAnalyzing}
+                >
+                  <RefreshCw color="#4F46E5" size={16} />
+                  <Text style={styles.aiRetryBtnText}>Retry Analysis</Text>
+                </Pressable>
+                <Pressable style={styles.aiContinueManualBtn} onPress={() => setStep(2)}>
+                  <Text style={styles.aiContinueManualBtnText}>Continue Manually</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
+          {/* AI Suggestion Card */}
+          {aiAnalysis && !isAnalyzing && !isEditingAi && (
+            <View style={styles.aiCard}>
+              <View style={styles.aiCardHeader}>
+                <View style={styles.aiHeaderTitleWrap}>
+                  <Sparkles color="#6366F1" size={18} />
+                  <Text style={styles.aiCardTitle}>AI ANALYSIS</Text>
+                </View>
+                <View
+                  style={[
+                    styles.aiConfidenceBadge,
+                    aiAnalysis.confidence >= 0.85
+                      ? styles.confidenceHigh
+                      : aiAnalysis.confidence >= 0.65
+                      ? styles.confidenceMed
+                      : styles.confidenceLow,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.aiConfidenceText,
+                      aiAnalysis.confidence >= 0.85
+                        ? styles.confidenceTextHigh
+                        : aiAnalysis.confidence >= 0.65
+                        ? styles.confidenceTextMed
+                        : styles.confidenceTextLow,
+                    ]}
+                  >
+                    {confidenceLabel}
+                  </Text>
+                </View>
+              </View>
+
+              {isLowConfidence && (
+                <View style={styles.lowConfidenceAlert}>
+                  <AlertTriangle color="#D97706" size={16} />
+                  <Text style={styles.lowConfidenceText}>
+                    AI confidence is low. Please review this result carefully.
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.aiGrid}>
+                <View style={styles.aiGridItem}>
+                  <Text style={styles.aiGridLabel}>Barrier</Text>
+                  <Text style={styles.aiGridValue}>
+                    {BARRIER_TYPES.find(b => b.type === aiAnalysis.barrierType)?.label || aiAnalysis.barrierType}
+                  </Text>
+                </View>
+
+                <View style={styles.aiGridItem}>
+                  <Text style={styles.aiGridLabel}>Severity</Text>
+                  <View
+                    style={[
+                      styles.severityMiniPill,
+                      { backgroundColor: SEVERITIES.find(s => s.value === aiAnalysis.severity)?.color },
+                    ]}
+                  >
+                    <Text style={styles.severityMiniPillText}>
+                      {SEVERITIES.find(s => s.value === aiAnalysis.severity)?.label || aiAnalysis.severity}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.aiGridItem}>
+                  <Text style={styles.aiGridLabel}>Surface</Text>
+                  <Text style={styles.aiGridValue}>
+                    {aiAnalysis.surfaceCondition.toUpperCase()}
+                  </Text>
+                </View>
+
+                <View style={styles.aiGridItem}>
+                  <Text style={styles.aiGridLabel}>Passability</Text>
+                  <Text style={styles.aiGridValue}>
+                    {aiAnalysis.estimatedPassability.replace(/_/g, ' ').toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.aiDetectionsRow}>
+                <Text style={styles.detectionItem}>
+                  {aiAnalysis.obstructionDetected ? '✓ Obstruction' : 'No obstruction'}
+                </Text>
+                <Text style={styles.detectionDot}>•</Text>
+                <Text style={styles.detectionItem}>
+                  {aiAnalysis.stairsDetected === true
+                    ? '✓ Stairs detected'
+                    : aiAnalysis.stairsDetected === false
+                    ? 'No stairs detected'
+                    : 'Stairs: Unknown'}
+                </Text>
+                <Text style={styles.detectionDot}>•</Text>
+                <Text style={styles.detectionItem}>
+                  {aiAnalysis.rampDetected === true
+                    ? '✓ Ramp detected'
+                    : aiAnalysis.rampDetected === false
+                    ? 'No ramp visible'
+                    : 'Ramp: Unknown'}
+                </Text>
+              </View>
+
+              <View style={styles.aiNoteBox}>
+                <Text style={styles.aiNoteLabel}>AI note:</Text>
+                <Text style={styles.aiNoteText}>"{aiAnalysis.reasoningSummary}"</Text>
+              </View>
+
+              <View style={styles.aiActionsRow}>
+                <Pressable
+                  style={styles.editAnalysisBtn}
+                  onPress={handleStartEditAnalysis}
+                >
+                  <Edit3 color={theme.colors.text} size={16} />
+                  <Text style={styles.editAnalysisBtnText}>Edit Analysis</Text>
+                </Pressable>
+
+                <Pressable style={styles.useSuggestionBtn} onPress={handleUseSuggestion}>
+                  <LinearGradient colors={['#10B981', '#059669']} style={styles.btnGradient}>
+                    <Text style={styles.useSuggestionBtnText}>Use Suggestion</Text>
+                  </LinearGradient>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
+          {/* Edit AI Analysis Form */}
+          {isEditingAi && (
+            <View style={styles.editAiCard}>
+              <Text style={styles.editAiTitle}>Edit AI Suggestion</Text>
+              <Text style={styles.editAiSubtitle}>
+                Adjust the barrier details before continuing to the report form.
+              </Text>
+
+              <Text style={styles.label}>Barrier Type</Text>
+              <View style={styles.pillContainer}>
+                {BARRIER_TYPES.map(bt => {
+                  const isSelected = barrierType === bt.type;
+                  return (
+                    <Pressable
+                      key={bt.type}
+                      onPress={() => setBarrierType(bt.type)}
+                      style={{ overflow: 'hidden', borderRadius: 20 }}
+                    >
+                      <View style={[styles.pill, isSelected && styles.pillActive]}>
+                        <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                          {bt.label}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.label}>Severity Level</Text>
+              <View style={styles.severityGrid}>
+                {SEVERITIES.map(sev => {
+                  const isSelected = severity === sev.value;
+                  return (
+                    <Pressable
+                      key={sev.value}
+                      style={[
+                        styles.severityCard,
+                        isSelected && { borderColor: sev.color, backgroundColor: sev.bgColor },
+                      ]}
+                      onPress={() => setSeverity(sev.value)}
+                    >
+                      <View style={[styles.severityDot, { backgroundColor: sev.color }]} />
+                      <View style={styles.severityTextWrap}>
+                        <Text style={[styles.severityLabel, isSelected && { color: sev.color }]}>
+                          {sev.label}
+                        </Text>
+                        <Text style={styles.severityDesc}>{sev.desc}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.label}>Surface Condition</Text>
+              <View style={styles.pillContainer}>
+                {SURFACE_CONDITIONS.map(sc => {
+                  const isSelected = editSurfaceCondition === sc.value;
+                  return (
+                    <Pressable
+                      key={sc.value}
+                      onPress={() => setEditSurfaceCondition(sc.value)}
+                      style={{ overflow: 'hidden', borderRadius: 20 }}
+                    >
+                      <View style={[styles.pill, isSelected && styles.pillActive]}>
+                        <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                          {sc.label}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.label}>Passability</Text>
+              <View style={styles.pillContainer}>
+                {PASSABILITY_OPTIONS.map(po => {
+                  const isSelected = editPassability === po.value;
+                  return (
+                    <Pressable
+                      key={po.value}
+                      onPress={() => setEditPassability(po.value)}
+                      style={{ overflow: 'hidden', borderRadius: 20 }}
+                    >
+                      <View style={[styles.pill, isSelected && styles.pillActive]}>
+                        <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                          {po.label}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <View style={styles.editAiButtonRow}>
+                <Pressable
+                  style={styles.cancelEditBtn}
+                  onPress={() => setIsEditingAi(false)}
+                >
+                  <Text style={styles.cancelEditBtnText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.applyEditBtn}
+                  onPress={handleSaveEditedAnalysis}
+                >
+                  <LinearGradient colors={[theme.colors.primary, '#004de6']} style={styles.btnGradient}>
+                    <Text style={styles.primaryBtnText}>Confirm Edits & Continue</Text>
+                  </LinearGradient>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
+          {/* Action Row if not analyzing and not currently editing */}
+          {!isEditingAi && (
+            <View style={styles.step1Actions}>
+              {isImageAvailable && !aiAnalysis && (
+                <Pressable
+                  style={[styles.aiAnalyzeBtn, isAnalyzing && styles.disabledBtn]}
+                  onPress={handleAnalyzeWithAI}
+                  disabled={isAnalyzing}
+                >
+                  <LinearGradient colors={['#6366F1', '#4F46E5']} style={styles.btnGradient}>
+                    <View style={styles.btnWithIcon}>
+                      <Sparkles color="#FFFFFF" size={20} />
+                      <Text style={styles.primaryBtnText}>Analyze with AI</Text>
+                    </View>
+                  </LinearGradient>
+                </Pressable>
+              )}
+
+              <Pressable
+                style={[styles.manualContinueBtn, !isImageAvailable && styles.primaryBtn]}
+                onPress={() => setStep(2)}
+              >
+                {!isImageAvailable ? (
+                  <LinearGradient colors={[theme.colors.primary, '#004de6']} style={styles.btnGradient}>
+                    <Text style={styles.primaryBtnText}>Skip Photo / Continue</Text>
+                  </LinearGradient>
+                ) : (
+                  <Text style={styles.manualContinueBtnText}>
+                    {aiAnalysis ? 'Continue Manually Without AI' : 'Continue Manually'}
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          )}
+        </ScrollView>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
@@ -276,6 +774,15 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
       >
         <Text style={styles.stepTitle}>Barrier Details</Text>
         <Text style={styles.stepSubtitle}>Provide details about the accessibility issue.</Text>
+
+        {originalSuggestion && (
+          <View style={styles.aiAssistedBanner}>
+            <Sparkles color="#6366F1" size={16} />
+            <Text style={styles.aiAssistedBannerText}>
+              AI-assisted values pre-filled ({Math.round(originalSuggestion.confidence * 100)}% confidence). You can review or edit any field below.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.label}>Select Affected Path *</Text>
@@ -469,6 +976,42 @@ export default function ReportBarrierModal({ visible, onClose, onSubmit, routeSe
                 <Text style={styles.severityPillText}>{SEVERITIES.find(s => s.value === severity)?.label}</Text>
               </View>
             </View>
+
+            {originalSuggestion && (
+              <>
+                <View style={styles.reviewDivider} />
+                <View style={styles.reviewRow}>
+                  <Text style={styles.reviewLabel}>Report Source</Text>
+                  <View style={styles.aiReviewBadge}>
+                    <Sparkles color="#6366F1" size={12} />
+                    <Text style={styles.aiReviewBadgeText}>
+                      AI-Assisted ({Math.round(originalSuggestion.confidence * 100)}%)
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.reviewDivider} />
+                <View style={styles.reviewRow}>
+                  <Text style={styles.reviewLabel}>AI Suggested</Text>
+                  <Text style={styles.reviewValue}>
+                    {BARRIER_TYPES.find(b => b.type === originalSuggestion.barrierType)?.label} · {SEVERITIES.find(s => s.value === originalSuggestion.severity)?.label}
+                  </Text>
+                </View>
+
+                <View style={styles.reviewDivider} />
+                <View style={styles.reviewRow}>
+                  <Text style={styles.reviewLabel}>Modified by user</Text>
+                  <Text style={[
+                    styles.reviewValue,
+                    (barrierType !== originalSuggestion.barrierType || severity !== originalSuggestion.severity)
+                      ? { color: '#D97706', fontWeight: '800' }
+                      : { color: theme.colors.success, fontWeight: '800' }
+                  ]}>
+                    {(barrierType !== originalSuggestion.barrierType || severity !== originalSuggestion.severity) ? 'Yes' : 'No'}
+                  </Text>
+                </View>
+              </>
+            )}
 
             {description ? (
               <>
@@ -1074,5 +1617,406 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     color: theme.colors.textSecondary,
+  },
+  sampleFixturesSection: {
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  sampleFixturesTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.textSecondary,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sampleScroll: {
+    flexDirection: 'row',
+  },
+  sampleChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginRight: 8,
+  },
+  sampleChipActive: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#6366F1',
+  },
+  sampleChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  sampleChipTextActive: {
+    color: '#4F46E5',
+    fontWeight: '700',
+  },
+  aiLoadingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
+    ...theme.shadows.card,
+  },
+  aiLoadingTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E1B4B',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  aiLoadingSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  aiErrorCard: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  aiErrorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  aiErrorTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#991B1B',
+  },
+  aiErrorText: {
+    fontSize: 13,
+    color: '#B91C1C',
+    marginBottom: 4,
+  },
+  aiErrorSubtext: {
+    fontSize: 12,
+    color: '#7F1D1D',
+    marginBottom: 14,
+  },
+  aiErrorActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  aiRetryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  aiRetryBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#4F46E5',
+  },
+  aiContinueManualBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiContinueManualBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  aiCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    marginTop: 16,
+    borderWidth: 1.5,
+    borderColor: '#E0E7FF',
+    ...theme.shadows.card,
+  },
+  aiCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  aiHeaderTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiCardTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#4338CA',
+    letterSpacing: 0.8,
+  },
+  aiConfidenceBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  confidenceHigh: {
+    backgroundColor: '#DCFCE7',
+  },
+  confidenceMed: {
+    backgroundColor: '#FEF3C7',
+  },
+  confidenceLow: {
+    backgroundColor: '#FEE2E2',
+  },
+  aiConfidenceText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  confidenceTextHigh: {
+    color: '#166534',
+  },
+  confidenceTextMed: {
+    color: '#92400E',
+  },
+  confidenceTextLow: {
+    color: '#991B1B',
+  },
+  lowConfidenceAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFFBEB',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  lowConfidenceText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#B45309',
+  },
+  aiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
+  },
+  aiGridItem: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#F9FAFB',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  aiGridLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  aiGridValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  severityMiniPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  severityMiniPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  aiDetectionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E7EB',
+    marginBottom: 12,
+  },
+  detectionItem: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  detectionDot: {
+    fontSize: 10,
+    color: '#9CA3AF',
+  },
+  aiNoteBox: {
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#6366F1',
+    marginBottom: 16,
+  },
+  aiNoteLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 2,
+  },
+  aiNoteText: {
+    fontSize: 13,
+    color: '#1E293B',
+    fontStyle: 'italic',
+    lineHeight: 18,
+  },
+  aiActionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editAnalysisBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  editAnalysisBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  useSuggestionBtn: {
+    flex: 1.4,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  useSuggestionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  step1Actions: {
+    gap: 12,
+    marginTop: 20,
+  },
+  aiAnalyzeBtn: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...theme.shadows.elevated,
+  },
+  btnWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  manualContinueBtn: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manualContinueBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.primary,
+  },
+  editAiCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    marginTop: 16,
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    ...theme.shadows.card,
+  },
+  editAiTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E1B4B',
+    marginBottom: 4,
+  },
+  editAiSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  editAiButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  cancelEditBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelEditBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  applyEditBtn: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  aiAssistedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#EEF2FF',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  aiAssistedBannerText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#4338CA',
+    lineHeight: 16,
+  },
+  aiReviewBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  aiReviewBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#4338CA',
   },
 });

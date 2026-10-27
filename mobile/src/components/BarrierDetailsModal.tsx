@@ -10,9 +10,9 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { X, MapPin, Clock, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react-native';
+import { X, MapPin, Clock, AlertTriangle, CheckCircle, Trash2, Sparkles } from 'lucide-react-native';
 import { theme } from '../constants/theme';
-import { BarrierReport } from '../types/pathsense';
+import { BarrierReport, BarrierSeverity } from '../types/pathsense';
 import { pathSegments } from '../data/pathSegments';
 import { landmarks } from '../data/landmarks';
 
@@ -24,6 +24,24 @@ interface Props {
   onDelete: (id: string) => void;
   routeSegmentIds: Set<string>;
 }
+
+const getSeverityBadgeStyle = (severity: BarrierSeverity) => {
+  switch (severity) {
+    case 'low': return styles.severity_low;
+    case 'moderate': return styles.severity_moderate;
+    case 'high': return styles.severity_high;
+    case 'critical': return styles.severity_critical;
+  }
+};
+
+const getSeverityTextStyle = (severity: BarrierSeverity) => {
+  switch (severity) {
+    case 'low': return styles.severityText_low;
+    case 'moderate': return styles.severityText_moderate;
+    case 'high': return styles.severityText_high;
+    case 'critical': return styles.severityText_critical;
+  }
+};
 
 export default function BarrierDetailsModal({
   visible,
@@ -114,8 +132,8 @@ export default function BarrierDetailsModal({
             )}
 
             {!isResolved && (
-              <View style={[styles.severityBadge, styles[`severity_${report.severity}` as keyof typeof styles]]}>
-                <Text style={[styles.severityText, styles[`severityText_${report.severity}` as keyof typeof styles]]}>
+              <View style={[styles.severityBadge, getSeverityBadgeStyle(report.severity)]}>
+                <Text style={[styles.severityText, getSeverityTextStyle(report.severity)]}>
                   {report.severity.toUpperCase()}
                 </Text>
               </View>
@@ -195,6 +213,63 @@ export default function BarrierDetailsModal({
               </Text>
             </View>
           </View>
+
+          {report.source === 'ai_assisted' && report.aiAnalysis && (
+            <View style={styles.detailCard}>
+              <View style={styles.aiHeaderRow}>
+                <Sparkles color="#6366F1" size={16} />
+                <Text style={styles.aiHeaderTitle}>AI Analysis</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Suggested</Text>
+                <Text style={styles.detailValue}>
+                  {report.aiAnalysis.originalSuggestion.barrierType
+                    .replace(/[-_]/g, ' ')
+                    .replace(/\b\w/g, (c) => c.toUpperCase())} · {report.aiAnalysis.originalSuggestion.severity.toUpperCase()}
+                </Text>
+              </View>
+
+              {report.aiAnalysis.userModified && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Final</Text>
+                  <Text style={styles.detailValue}>
+                    {report.barrierType
+                      .replace(/[-_]/g, ' ')
+                      .replace(/\b\w/g, (c) => c.toUpperCase())} · {report.severity.toUpperCase()}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.divider} />
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Confidence</Text>
+                <Text style={styles.detailValue}>
+                  {Math.round(report.aiAnalysis.confidence * 100)}%
+                </Text>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Modified by user</Text>
+                <Text style={[styles.detailValue, { fontWeight: '700', color: report.aiAnalysis.userModified ? '#D97706' : theme.colors.success }]}>
+                  {report.aiAnalysis.userModified ? 'Yes' : 'No'}
+                </Text>
+              </View>
+
+              {report.aiAnalysis.originalSuggestion.reasoningSummary ? (
+                <>
+                  <View style={styles.divider} />
+                  <Text style={styles.detailLabel}>AI Reasoning</Text>
+                  <Text style={[styles.detailValueText, { marginTop: 4, fontStyle: 'italic' }]}>
+                    "{report.aiAnalysis.originalSuggestion.reasoningSummary}"
+                  </Text>
+                </>
+              ) : null}
+            </View>
+          )}
 
           {report.description && (
             <View style={styles.detailCard}>
@@ -375,5 +450,16 @@ const styles = StyleSheet.create({
     color: theme.colors.error,
     fontSize: 16,
     fontWeight: '700',
+  },
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  aiHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#4338CA',
   },
 });

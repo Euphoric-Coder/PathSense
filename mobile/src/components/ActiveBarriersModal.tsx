@@ -8,9 +8,9 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import { X, AlertTriangle, CheckCircle, Clock } from 'lucide-react-native';
+import { X, AlertTriangle, CheckCircle, Clock, Sparkles } from 'lucide-react-native';
 import { theme } from '../constants/theme';
-import { BarrierReport } from '../types/pathsense';
+import { BarrierReport, BarrierSeverity } from '../types/pathsense';
 import { pathSegments } from '../data/pathSegments';
 import { landmarks } from '../data/landmarks';
 
@@ -20,6 +20,24 @@ interface Props {
   reports: BarrierReport[];
   onSelectBarrier: (report: BarrierReport) => void;
 }
+
+const getSeverityBadgeStyle = (severity: BarrierSeverity) => {
+  switch (severity) {
+    case 'low': return styles.severity_low;
+    case 'moderate': return styles.severity_moderate;
+    case 'high': return styles.severity_high;
+    case 'critical': return styles.severity_critical;
+  }
+};
+
+const getSeverityTextStyle = (severity: BarrierSeverity) => {
+  switch (severity) {
+    case 'low': return styles.severityText_low;
+    case 'moderate': return styles.severityText_moderate;
+    case 'high': return styles.severityText_high;
+    case 'critical': return styles.severityText_critical;
+  }
+};
 
 export default function ActiveBarriersModal({
   visible,
@@ -80,8 +98,8 @@ export default function ActiveBarriersModal({
             <Text style={styles.cardTitle}>{barrierName}</Text>
           </View>
           {!isResolved && (
-            <View style={[styles.severityBadge, styles[`severity_${item.severity}` as keyof typeof styles]]}>
-              <Text style={[styles.severityText, styles[`severityText_${item.severity}` as keyof typeof styles]]}>
+            <View style={[styles.severityBadge, getSeverityBadgeStyle(item.severity)]}>
+              <Text style={[styles.severityText, getSeverityTextStyle(item.severity)]}>
                 {item.severity.toUpperCase()}
               </Text>
             </View>
@@ -89,7 +107,17 @@ export default function ActiveBarriersModal({
         </View>
 
         <Text style={styles.pathName}>{affectedPath}</Text>
-        <Text style={styles.segmentIdText}>{item.segmentId}</Text>
+        <View style={styles.subInfoRow}>
+          <Text style={styles.segmentIdText}>{item.segmentId}</Text>
+          {item.source === 'ai_assisted' && (
+            <View style={styles.aiBadge}>
+              <Sparkles color="#6366F1" size={10} />
+              <Text style={styles.aiBadgeText}>
+                AI-assisted • {Math.round((item.aiAnalysis?.confidence ?? 0.85) * 100)}% confidence
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.timeRow}>
           <Clock color={theme.colors.textMuted} size={12} />
@@ -273,10 +301,29 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     marginBottom: 4,
   },
+  subInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   segmentIdText: {
     fontSize: 12,
     color: theme.colors.textMuted,
-    marginBottom: 8,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  aiBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#4F46E5',
   },
   timeRow: {
     flexDirection: 'row',
